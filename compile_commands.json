@@ -1,0 +1,37 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/arm-none-eabi-gcc",
+      "-c",
+      "-g",
+      "-Wall",
+      "-O3",
+      "-I./include/",
+      "-I./libs/libopencm3/include/",
+      "-ffreestanding",
+      "-ffunction-sections",
+      "-fdata-sections",
+      "-fsingle-precision-constant",
+      "-Wall",
+      "-Wextra",
+      "-Wpedantic",
+      "-Wundef",
+      "-Wshadow",
+      "-Wredundant-decls",
+      "-Wstrict-prototypes",
+      "-Wmissing-prototypes",
+      "-Wno-variadic-macros",
+      "-Wno-unused-result",
+      "-Wno-unused-parameter",
+      "-Wno-unused-label",
+      "-mcpu=cortex-m4",
+      "-mthumb",
+      "-o",
+      "build/main.o",
+      "src/main.c"
+    ],
+    "directory": "/home/goldenboy/led_proj/leds",
+    "file": "/home/goldenboy/led_proj/leds/src/main.c",
+    "output": "/home/goldenboy/led_proj/leds/build/main.o"
+  }
+]
