@@ -1,4 +1,6 @@
 #include "common.h"
+#include "libopencm3/stm32/common/timer_common_all.h"
+#include "libopencm3/stm32/f0/nvic.h"
 #include "libopencm3/stm32/f4/gpio.h"
 #include "libopencm3/stm32/f4/rcc.h"
 #include "libopencm3/stm32/rcc.h"
@@ -12,8 +14,18 @@ void _lseek_r(void) {}
 void _read_r(void) {}
 void _write_r(void) {}
 
+//one bit takes a total of 1.25us(microseconds)
+//24 bits per pkt is 30us or 0.03ms / the 30 us, is equal to 
+//1MHZ tick, but I want this in 16mhz, so I can multiply by 16
+//the result is 480 clock ticks
+
 #define NUM_LEDS 3
+#define WRITE_DELAY 480
 #define CLK_MHZ 16
+#define CLK_HZ 16000000
+#define RR_HZ 30
+#define UPDATE_INTERVAL 533333
+#define LED_WAIT (UPDATE_INTERVAL - (NUM_LEDS * WRITE_DELAY))
 //use a 32bit timer
 #define LED_TIM TIM5
 
@@ -75,6 +87,25 @@ static void clock_setup(void)
     //rcc_set_ppre2(RCC_CFGR_PPRE_DIV2);
 
     //rcc_periph_clock_enable(RCC_GPIOD);
+}
+
+void tim2_isr(void){
+    //disable other interrupts, giving me full access to the clock
+    __asm__("cpsid i");
+    TIM2_CR1 &= ~(1); //stop counter while writing
+                      
+    write_chain();             
+
+    TIM2_CR1 &= ~(1); //stop counter while writing
+    __asm__("cpsie i");
+    GPIOC_ODR &= ~(GPIO13); //clear put the divice in reset mode
+}
+
+
+static void setup_led_write_clk(void){
+    TIM2_CR1 = 0x000; //generate interrupt, enable update
+    TIM2_ARR = LED_WAIT; //generate interrupt, enable update
+    TIM2_CR1 = 0x003; //generate interrupt, enable update
 }
 
 static void init_led(void){
