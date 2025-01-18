@@ -21,4 +21,4 @@ clean:
 	rm build/* $(target).* 
 
 flash:
-	openocd -f /opt/tigard/tigard-swd.cfg -f target/stm32f4x.cfg
+	openocd -f tigard-swd.cfg -f target/stm32f4x.cfg
