@@ -160,7 +160,7 @@ int main(void){
         memcpy(&led_map[0], &led_map[1], 3);
         memcpy(&led_map[1], &led_map[2], 3);
         memcpy(&led_map[2], &tmp, 3);
-        msleep(1000); // approximate for 30hz refresh rate
+        msleep(400); // approximate for 30hz refresh rate
     }
 
     return 0;
