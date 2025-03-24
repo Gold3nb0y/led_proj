@@ -14,6 +14,9 @@
             buildInputs = with pkgs; [
                 gcc-arm-embedded
                 openocd
+                libtool
+                automake
+                autoconf
                 zsh
                 libusb1
             ];

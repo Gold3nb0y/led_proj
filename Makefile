@@ -1,9 +1,9 @@
 #define a series of objects in an array
-OBJS := build/main.o build/common.o build/write.o build/i2c.o
+OBJS := build/main.o build/common.o build/write.o build/i2c.o build/lcd.o build/gyro.o
 CC = arm-none-eabi-gcc
-CFLAGS = -g -Wall -O3 -ffreestanding -ffunction-sections -fdata-sections -fsingle-precision-constant -Wall -Wextra -Wpedantic -Wundef -Wshadow -Wredundant-decls -Wstrict-prototypes -Wmissing-prototypes -Wno-variadic-macros -Wno-unused-result -Wno-unused-parameter -Wno-unused-label -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -nostdlib
+CFLAGS = -g -ggdb -Wall -O0 -ffreestanding -ffunction-sections -fdata-sections -fsingle-precision-constant -Wall -Wextra -Wpedantic -Wundef -Wshadow -Wredundant-decls -Wstrict-prototypes -Wmissing-prototypes -Wno-variadic-macros -Wno-unused-result -Wno-unused-parameter -Wno-unused-label -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -nostdlib
 LIBS = -I./include/ -I./libs/libopencm3/include/ -L./libs/libopencm3/lib/
-LFLAGS = -Wl,--no-warn-rwx-segment -specs=nano.specs -specs=nosys.specs -lnosys
+LFLAGS = -Wl,--no-warn-rwx-segment -specs=nano.specs -specs=nosys.specs -lnosys -lm
 target = blink
 
 all: $(target)
