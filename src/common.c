@@ -3,6 +3,7 @@
 
 volatile uint32_t ticks;
 
+//now make it enable and disable interrupts
 void msleep(uint32_t delay){
     uint32_t wake = ticks + (delay); //scale delay down to match clock
     while(wake > ticks);
@@ -120,4 +121,89 @@ int sprintf(char *buf, const char *fmt, ...) {
     *str = '\0';
     va_end(args);
     return str - buf;
+}
+
+int snprintf(char *out, uint32_t max_len, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+
+    uint32_t len = 0;
+
+    while (*fmt && len < max_len - 1) {
+        if (*fmt != '%') {
+            out[len++] = *fmt++;
+            continue;
+        }
+
+        fmt++; // Skip '%'
+        bool long_flag = false;
+
+        // Format specifiers
+        switch (*fmt) {
+            case 'l':
+                long_flag = true;
+                fmt++;
+                break;
+        }
+
+        switch (*fmt) {
+            case 'd': {
+                int val = long_flag ? va_arg(args, long) : va_arg(args, int);
+                if (val < 0) {
+                    if (len < max_len - 1)
+                        out[len++] = '-';
+                    val = -val;
+                }
+                char num[16];
+                int n = utoa((unsigned int)val, num, 10, false);
+                for (int i = 0; i < n && len < max_len - 1; i++)
+                    out[len++] = num[i];
+                break;
+            }
+            case 'u': {
+                unsigned int val = va_arg(args, unsigned int);
+                char num[16];
+                int n = utoa(val, num, 10, false);
+                for (int i = 0; i < n && len < max_len - 1; i++)
+                    out[len++] = num[i];
+                break;
+            }
+            case 'x':
+            case 'X': {
+                unsigned int val = va_arg(args, unsigned int);
+                char num[16];
+                int n = utoa(val, num, 16, *fmt == 'X');
+                for (int i = 0; i < n && len < max_len - 1; i++)
+                    out[len++] = num[i];
+                break;
+            }
+            case 'c': {
+                char c = (char)va_arg(args, int);
+                if (len < max_len - 1)
+                    out[len++] = c;
+                break;
+            }
+            case 's': {
+                const char *s = va_arg(args, const char *);
+                while (*s && len < max_len - 1)
+                    out[len++] = *s++;
+                break;
+            }
+            case '%': {
+                if (len < max_len - 1)
+                    out[len++] = '%';
+                break;
+            }
+            default:
+                // Unknown specifier — print '?'
+                if (len < max_len - 1)
+                    out[len++] = '?';
+                break;
+        }
+        fmt++;
+    }
+
+    out[len] = '\0';
+    va_end(args);
+    return len;
 }

@@ -42,6 +42,7 @@ static void systick_setup(void)
 	systick_set_reload(84000); //clock up to 84mHz
 	systick_set_clocksource(STK_CSR_CLKSOURCE_AHB);
 	systick_counter_enable();
+    nvic_set_priority(NVIC_SYSTICK_IRQ, 2); //less important than writting
 	/* this done last */
 	systick_interrupt_enable();
 }
@@ -68,23 +69,20 @@ static void update_leds(led_t *led){
 
 
 void tim2_isr(void){
-    TIM_CR1(TIM2) |= TIM_CR1_UDIS; /* disable interrupt generation */
+    //TIM_CR1(TIM2) |= TIM_CR1_UDIS; /* disable interrupt generation */
                       
+    //systick_interrupt_disable();
     write_chain(NUM_LEDS);             
 
-    gyro_update();
-    gyro_calc_led_color(&tmp);
-
-    update_leds(&tmp);
-
+    //systick_interrupt_enable();
     TIM_SR(TIM2) &= ~TIM_SR_UIF; /* Clear interrrupt flag. */
-    TIM_CR1(TIM2) &= ~TIM_CR1_UDIS; /* reenablle interrupt generation */
+    //TIM_CR1(TIM2) &= ~TIM_CR1_UDIS; /* reenablle interrupt generation */
 }
 
 
 static void setup_led_write_clk(void){
     nvic_enable_irq(NVIC_TIM2_IRQ);
-    nvic_set_priority(NVIC_TIM2_IRQ, 2);
+    nvic_set_priority(NVIC_TIM2_IRQ, 3);
 
     TIM_CNT(TIM2) = 1;
     TIM_PSC(TIM2) = 2800; //30000 ticks per second
@@ -143,6 +141,7 @@ static void start_lcd(void){
 
 int main(void){
     int32_t back_pitch = 0, back_roll = 0;
+    int32_t count = 0;
     clock_setup();
     systick_setup();
     msleep(20);
@@ -159,13 +158,22 @@ int main(void){
     msleep(3000);
     setup_led_write_clk();
     for(;;){
-        gpio_toggle(GPIOC, GPIO13);
+        while(!gyro_lock()); //grab lock before reading values
+        gyro_update();
         if(back_pitch != gyro.pitch || back_roll != gyro.roll){
+            gyro_calc_led_color(&tmp);
+            update_leds(&tmp);
             back_pitch = gyro.pitch;
             back_roll = gyro.roll;
-            gyro_print_data();
         }
-        msleep(1000); //sleep for 1 second
+        if(++count > 30){
+            gpio_toggle(GPIOC, GPIO13);
+            gyro_print_data();
+            count = 0;
+        }
+
+        gyro_unlock();
+        msleep(100); //sleep for .1 second
     }
     return 0;
 }

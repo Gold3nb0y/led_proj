@@ -1,8 +1,6 @@
 #include <stdint.h>
 #include "i2c.h"
 
-
-
 void i2c_enable(uint32_t i2c){
     I2C(i2c, I2C_CR1) |= 1;
 }

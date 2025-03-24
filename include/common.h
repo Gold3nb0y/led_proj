@@ -11,6 +11,7 @@
 #include <libopencm3/stm32/timer.h>
 #include <libopencm3/cm3/systick.h>
 #include <stdarg.h>
+#include "config.h"
 
 //defines
 #define NUM_LEDS 3
@@ -69,6 +70,7 @@ uint32_t strlen(char* str);
 void memcpy(void* dest, void* src, uint32_t size);
 void memset(void* dest, char val, uint32_t size);
 int sprintf(char *buf, const char *fmt, ...);
+int snprintf(char *out, uint32_t max_len, const char *fmt, ...);
 
 
 #endif 
