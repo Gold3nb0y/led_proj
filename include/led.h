@@ -8,7 +8,7 @@ typedef struct led{
 }led_t;
 
 #define BASE_RED 160
-#define BASE_GREEN 70
+#define BASE_GREEN 0
 #define BASE_BLUE 160
 
 #endif

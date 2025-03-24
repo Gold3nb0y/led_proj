@@ -7,17 +7,11 @@
 
 gyro_t gyro;
 
-//this is to make math happy
-int *__errno(void) {
-    static int err;
-    return &err;
-}
-
-static int calc_pitch(float ax, float ay, float az) {
+static float calc_pitch(float ax, float ay, float az) {
     return atan2f(-ax, az) * 57.4f;
 }
 
-static int calc_roll(float ax, float ay, float az) {
+static float calc_roll(float ax, float ay, float az) {
     return atan2f(-ay, az) * 57.4f;
 }
 
@@ -61,37 +55,25 @@ void gyro_init(void){
     memset(&gyro, 0, sizeof(gyro));
 }
 
-bool gyro_update(void){
-    uint16_t back_x, back_y, back_z;
-    bool update = false;
+void gyro_update(void){
 
-    back_x = gyro.acc_x;
-    back_y = gyro.acc_y;
-    back_z = gyro.acc_z;
     gyro.acc_x = gyro_read_u16(ACC_X);
     gyro.acc_y = gyro_read_u16(ACC_Y);
     gyro.acc_z = gyro_read_u16(ACC_Z);
-    if(back_x != gyro.acc_x || back_y != gyro.acc_y || back_z != gyro.acc_z){
-        gyro.update_display = true;
-        update = true;
-        gyro.pitch_f = calc_pitch(gyro.acc_x, gyro.acc_y, gyro.acc_z);
-        gyro.pitch = (int32_t)gyro.pitch_f;
-        gyro.roll_f = calc_roll(gyro.acc_x, gyro.acc_y, gyro.acc_z);
-        gyro.roll = (int32_t)gyro.roll_f;
-    }
 
-    back_x = gyro.gyro_x;
-    back_y = gyro.gyro_y;
-    back_z = gyro.gyro_z;
-    gyro.gyro_x = gyro_read_u16(GYRO_X);
-    gyro.gyro_y = gyro_read_u16(GYRO_Y);
-    gyro.gyro_z = gyro_read_u16(GYRO_Z);
-    if(back_x != gyro.gyro_x || back_y != gyro.gyro_y || back_z != gyro.gyro_z){
-        gyro.update_display = true;
-        update = true;
-    }
+    gyro.pitch_f = calc_pitch((float)gyro.acc_x, (float)gyro.acc_y, (float)gyro.acc_z);
+    gyro.pitch = (int32_t)gyro.pitch_f;
 
-    return update;
+    gyro.roll_f = calc_roll((float)gyro.acc_x, (float)gyro.acc_y, (float)gyro.acc_z);
+    gyro.roll = (int32_t)gyro.roll_f;
+
+    //gyro.gyro_x = gyro_read_u16(GYRO_X);
+    //gyro.gyro_y = gyro_read_u16(GYRO_Y);
+    //gyro.gyro_z = gyro_read_u16(GYRO_Z);
+    //if(back_x != gyro.gyro_x || back_y != gyro.gyro_y || back_z != gyro.gyro_z){
+    //    gyro.update_display = true;
+    //    update = true;
+    //}
 }
 
 static int32_t sandwich(int32_t min, int32_t max, int32_t value){
@@ -105,7 +87,7 @@ static int32_t sandwich(int32_t min, int32_t max, int32_t value){
 }
 
 void gyro_calc_led_color(led_t *led){
-    led->r = sandwich(0, 0xff, BASE_RED + gyro.pitch*2);
-    led->g = sandwich(0, 0xff, BASE_GREEN + (gyro.pitch + gyro.roll));
-    led->b = sandwich(0, 0xff, BASE_BLUE + gyro.roll*2);
+    led->r = sandwich(0, 0xff, BASE_RED + gyro.pitch + gyro.roll);
+    led->g = 0x0; //sandwich(0, 0xff, BASE_GREEN + ((gyro.pitch + gyro.roll)));
+    led->b = sandwich(0, 0xff, BASE_BLUE + gyro.pitch - gyro.roll);
 }

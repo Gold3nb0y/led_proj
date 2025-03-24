@@ -58,22 +58,33 @@ static void clock_setup(void)
     systick_setup();
 }
 
+static void update_leds(led_t *led){
+    for(uint32_t i = 0; i < NUM_LEDS; i++){
+        led_map[i].r = led->r;
+        led_map[i].g = led->g;
+        led_map[i].b = led->b;
+    } 
+}
+
 
 void tim2_isr(void){
-    //disable other interrupts, giving me full access to the clock
-    bool update_info = false;
-    __asm__("cpsid i");
+    TIM_CR1(TIM2) |= TIM_CR1_UDIS; /* disable interrupt generation */
                       
     write_chain(NUM_LEDS);             
 
+    gyro_update();
+    gyro_calc_led_color(&tmp);
+
+    update_leds(&tmp);
+
     TIM_SR(TIM2) &= ~TIM_SR_UIF; /* Clear interrrupt flag. */
-    __asm__("cpsie i");
+    TIM_CR1(TIM2) &= ~TIM_CR1_UDIS; /* reenablle interrupt generation */
 }
 
 
 static void setup_led_write_clk(void){
     nvic_enable_irq(NVIC_TIM2_IRQ);
-    nvic_set_priority(NVIC_TIM2_IRQ, 1);
+    nvic_set_priority(NVIC_TIM2_IRQ, 2);
 
     TIM_CNT(TIM2) = 1;
     TIM_PSC(TIM2) = 2800; //30000 ticks per second
@@ -131,9 +142,7 @@ static void start_lcd(void){
 }
 
 int main(void){
-    bool update_info = false;
-    uint8_t count;
-    char buf[0x10];
+    int32_t back_pitch = 0, back_roll = 0;
     clock_setup();
     systick_setup();
     msleep(20);
@@ -147,28 +156,16 @@ int main(void){
 
     lcd_clear();
     start_lcd();
-    msleep(10000);
+    msleep(3000);
     setup_led_write_clk();
-    gyro_print_data();
     for(;;){
         gpio_toggle(GPIOC, GPIO13);
-        update_info = gyro_update();
-        if(gyro.update_display){
-            gyro_calc_led_color(&tmp);
-            if(count > 5){
-                //gyro_print_data();
-                count = 0;
-                sprintf(buf, "R:%x G:%x B:%x", led_map[0].r, led_map[0].g, led_map[0].b);
-                lcd_write_line(buf, 0);
-                lcd_update_display();
-            }
-            memcpy(&led_map[0], &tmp, 3);
-            memcpy(&led_map[1], &tmp, 3);
-            memcpy(&led_map[2], &tmp, 3);
-            count++;
+        if(back_pitch != gyro.pitch || back_roll != gyro.roll){
+            back_pitch = gyro.pitch;
+            back_roll = gyro.roll;
+            gyro_print_data();
         }
-        msleep(200); //sleep for 1 second
+        msleep(1000); //sleep for 1 second
     }
-
     return 0;
 }

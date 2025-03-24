@@ -24,7 +24,7 @@ void gyro_print_data(void);
 void gyro_init(void);
 uint8_t gyro_read_u8(uint8_t reg);
 uint16_t gyro_read_u16(uint8_t reg);
-bool gyro_update(void);
+void gyro_update(void);
 void gyro_calc_led_color(led_t *led);
 
 #endif

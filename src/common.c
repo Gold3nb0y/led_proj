@@ -4,7 +4,7 @@
 volatile uint32_t ticks;
 
 void msleep(uint32_t delay){
-    uint32_t wake = ticks + delay;
+    uint32_t wake = ticks + (delay); //scale delay down to match clock
     while(wake > ticks);
 }
 
