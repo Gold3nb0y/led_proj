@@ -20,7 +20,7 @@ static float calc_pitch(int16_t ax, int16_t ay, int16_t az) {
     y = (float)ay / ACC_SENSITIVITY;
     z = (float)az / ACC_SENSITIVITY;
     if (!isfinite(-x) || !isfinite(y) || !isfinite(z)) return 0.0f;
-    return atan2f(-x, sqrtf(y*y + z*z)) * 57.4f;
+    return atan2f(-x, z) * 57.4f;
 }
 
 static float calc_roll(int16_t ax, int16_t ay, int16_t az) {
@@ -72,7 +72,7 @@ static void gyro_write_reg(uint8_t *cmd, uint8_t len){
 void gyro_init(void){
     uint8_t data;
     uint8_t pwr_mgmt[] = {0x6b, 0x00};
-    uint8_t accel_cfg[] = {0x1c, 0xe0}; //set all input with 
+    uint8_t accel_cfg[] = {0x1c, 0x00}; //set all input with 
 
     //whoami
     data = 0x75;
@@ -82,7 +82,7 @@ void gyro_init(void){
     gyro_write_reg(pwr_mgmt, 2);
     gyro_write_reg(accel_cfg, 2);
     data = gyro_read_u8(0x1c);
-    if(data != 0xe0)
+    if(data != 0x00)
         for(;;);
 
     memset(&gyro, 0, sizeof(gyro));
@@ -112,7 +112,7 @@ static int32_t sandwich(int32_t min, int32_t max, int32_t value){
 }
 
 void gyro_calc_led_color(led_t *led){
-    led->r = sandwich(0, 0xff, BASE_RED + gyro.pitch + gyro.roll);
+    led->r = sandwich(0, 0xff, BASE_RED + gyro.pitch * 3);
     led->g = 0x0; //sandwich(0, 0xff, BASE_GREEN + ((gyro.pitch + gyro.roll)));
-    led->b = sandwich(0, 0xff, BASE_BLUE + gyro.pitch - gyro.roll);
+    led->b = sandwich(0, 0xff, BASE_BLUE + gyro.roll * 3);
 }

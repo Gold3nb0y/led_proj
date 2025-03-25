@@ -41,8 +41,8 @@ write_byte: //14 cycles + 7 + 10 = 31 + 6 + 1 = 38
     mul r0, r0, r1
     ldr r1, [sp, #0xc]
     add r0, r0, r1
-    ldr r6, [r6, r0] 
-    str r6, [sp, #0x14]
+    ldr r5, [r5, r0] 
+    str r5, [sp, #0x14]
     add r1, r1, #1
     cmp r1, #3
     bne bend
